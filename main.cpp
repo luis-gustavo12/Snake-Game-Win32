@@ -13,12 +13,12 @@
 #define GAME_WINDOW_HEIGHT 720
 
 
-//global variables
+// global variables
 
 
 
 
-// Different things btw, when the snake hits itself, or hits any of the edges, it makes the game to 
+// Different things btw, when the snake hits itself, or hits any of the edges, it makes the game to
 // terminate (Game Over), but the application doesn't need to stop
 
 //BOOL GameOver = FALSE;
@@ -27,8 +27,8 @@ BOOL ApplicationRunning = TRUE;
 
 
 static MSG Message = { 0 };
-static HWND Handle = NULL;
-
+static HWND GameWindow;
+HBITMAP GameInfoBitmap;
 
 
 
@@ -55,7 +55,7 @@ int _stdcall wWinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PWSTR Comm
 
 
 
-	HWND Handle = CreateWindowEx(
+	HWND GameWindow = CreateWindowEx(
 		0,
 		CLASS_NAME,
 		L"Snake Game Win32",
@@ -70,7 +70,7 @@ int _stdcall wWinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PWSTR Comm
 
 	// Handling fail of creatinh window
 
-	if (Handle == NULL) {
+	if (GameWindow == NULL) {
 
 
 		MessageBoxA(NULL, "Window Creation Failed", "Error!", MB_OK | MB_ICONEXCLAMATION);
@@ -78,13 +78,15 @@ int _stdcall wWinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PWSTR Comm
 
 	}
 
-	ShowWindow(Handle, CmdShow);
+	ShowWindow(GameWindow, CmdShow);
 
 
 	//----------------------------GAME MAIN LOOP----------------------------\\
 
 
 	CheckMutex();
+
+	CreateBitMapReasource();
 
 
 	while (ApplicationRunning != FALSE) {
@@ -131,7 +133,7 @@ int _stdcall wWinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PWSTR Comm
 
 
 
-LRESULT CALLBACK WindowProcedure(HWND Handle, UINT UnsignedMessage, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK WindowProcedure(HWND Window, UINT UnsignedMessage, WPARAM wParam, LPARAM lParam) {
 
 
 	switch (UnsignedMessage) {
@@ -143,7 +145,7 @@ LRESULT CALLBACK WindowProcedure(HWND Handle, UINT UnsignedMessage, WPARAM wPara
 
 		case WM_CLOSE:
 			OutputDebugStringA("WM_CLOSE\n");
-			DestroyWindow(Handle);
+			DestroyWindow(Window);
 			break;
 
 
@@ -155,8 +157,16 @@ LRESULT CALLBACK WindowProcedure(HWND Handle, UINT UnsignedMessage, WPARAM wPara
 
 
 		case WM_PAINT:
-			PAINTSTRUCT PaintStruct;
-			HDC DeviceContext = BeginPaint(Handle, &Paint);
+			OutputDebugStringA("WM_PAINT\n");
+			PAINTSTRUCT Paint;
+			HDC DeviceContext = BeginPaint(GameWindow, &Paint);
+			int x_top_position = Paint.rcPaint.top;
+			int y_left_position = Paint.rcPaint.left;
+			int localWidth = Paint.rcPaint.right - Paint.rcPaint.left;
+			int localHeight = Paint.rcPaint.bottom - Paint.rcPaint.top;
+			UpdateGameWindow(DeviceContext, x_top_position, x_top_position, localWidth, localHeight);
+			
+			EndPaint(GameWindow, &Paint);
 
 
 
@@ -170,7 +180,7 @@ LRESULT CALLBACK WindowProcedure(HWND Handle, UINT UnsignedMessage, WPARAM wPara
 
 
 
-	return DefWindowProc(Handle, UnsignedMessage, wParam, lParam);
+	return DefWindowProc(GameWindow, UnsignedMessage, wParam, lParam);
 
 
 }
@@ -217,5 +227,41 @@ void ProcessPlayerInput() {
 
 
 
+
+}
+
+
+
+void CreateBitMapReasource() {
+
+	HDC DeviceContext = GetDC(GameWindow);
+
+	GameInfoBitmap = CreateDIBitmap(
+		DeviceContext, 
+	)
+
+
+
+
+}
+
+
+
+
+void UpdateGameWindow(HDC DeviceContext, int x_initial_pos, int y_initial_pos, int width, int height) {
+
+	int StrechResult = StretchDIBits(
+		DeviceContext,
+		x_initial_pos, y_initial_pos, width, height,
+		x_initial_pos, y_initial_pos, width, height,
+		&GameInfoBitmap, BITMAPINFO GameInfoBitmap,
+		DIB_RGB_COLORS, SRCCOPY);
+
+	//TODO: create GameInfoBitmap structure and also	VirtualAlloc TO ALLOCATE MEMORY
+		
+
+
+	
+	
 
 }
