@@ -28,7 +28,10 @@ BOOL ApplicationRunning = TRUE;
 
 static MSG Message = { 0 };
 static HWND GameWindow;
-HBITMAP GameInfoBitmap;
+BITMAPINFO GameInfoBitmap;
+HBITMAP HandleToBitmap;
+
+void *GameMemoryVariable;
 
 
 
@@ -66,12 +69,15 @@ int _stdcall wWinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PWSTR Comm
 	);
 
 
-
+	
 
 	// Handling fail of creatinh window
 
 	if (GameWindow == NULL) {
 
+		//TODO: solve this problem!!
+
+		OutputDebugString((LPCWSTR)GetLastError());
 
 		MessageBoxA(NULL, "Window Creation Failed", "Error!", MB_OK | MB_ICONEXCLAMATION);
 		return -1;
@@ -233,12 +239,32 @@ void ProcessPlayerInput() {
 
 
 void CreateBitMapReasource() {
+	
 
+	//Setting GameMemoryVariable
+
+	GameMemoryVariable = VirtualAlloc(NULL, (GAME_WINDOW_HEIGHT * GAME_WINDOW_WIDTH), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+	
+	
+	
+	
 	HDC DeviceContext = GetDC(GameWindow);
 
-	GameInfoBitmap = CreateDIBitmap(
-		DeviceContext, 
-	)
+	GameInfoBitmap.bmiHeader.biSize = sizeof(GameInfoBitmap.bmiHeader);
+	GameInfoBitmap.bmiHeader.biWidth = GAME_WINDOW_WIDTH;
+	GameInfoBitmap.bmiHeader.biHeight = GAME_WINDOW_HEIGHT;  //REMARK: this makes the coodinate system from top to bottom 
+	GameInfoBitmap.bmiHeader.biPlanes = 1;
+	GameInfoBitmap.bmiHeader.biBitCount = 32;
+	GameInfoBitmap.bmiHeader.biCompression = BI_RGB;
+	GameInfoBitmap.bmiHeader.biSize = 0;
+	GameInfoBitmap.bmiHeader.biXPelsPerMeter = 0;
+	GameInfoBitmap.bmiHeader.biXPelsPerMeter = 0;
+	GameInfoBitmap.bmiHeader.biClrUsed = 0;
+	GameInfoBitmap.bmiHeader.biClrUsed = 0;
+
+
+	HBITMAP HandleToBitmap = CreateDIBSection(DeviceContext, &GameInfoBitmap, DIB_RGB_COLORS, &GameMemoryVariable, 0, 0);
+
 
 
 
@@ -254,10 +280,8 @@ void UpdateGameWindow(HDC DeviceContext, int x_initial_pos, int y_initial_pos, i
 		DeviceContext,
 		x_initial_pos, y_initial_pos, width, height,
 		x_initial_pos, y_initial_pos, width, height,
-		&GameInfoBitmap, BITMAPINFO GameInfoBitmap,
+		&GameInfoBitmap, &GameInfoBitmap,
 		DIB_RGB_COLORS, SRCCOPY);
-
-	//TODO: create GameInfoBitmap structure and also	VirtualAlloc TO ALLOCATE MEMORY
 		
 
 

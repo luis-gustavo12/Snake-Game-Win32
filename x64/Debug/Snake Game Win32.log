@@ -1,2 +1,3 @@
 ﻿  main.cpp
+C:\Users\starc\OneDrive\Área de Trabalho\Grongos\Grongos\Comando Vermelho\Simple Games in C++\Snake Game Win 32\Snake Game Win32\main.cpp(78,44): warning C4312: 'type cast': conversion from 'DWORD' to 'LPCWSTR' of greater size
   Snake Game Win32.vcxproj -> C:\Users\starc\OneDrive\Área de Trabalho\Grongos\Grongos\Comando Vermelho\Simple Games in C++\Snake Game Win 32\Snake Game Win32\x64\Debug\Snake Game Win32.exe
