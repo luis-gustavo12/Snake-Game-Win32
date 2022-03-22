@@ -27,11 +27,11 @@ BOOL ApplicationRunning = TRUE;
 
 
 static MSG Message = { 0 };
-static HWND GameWindow;
+HWND GameWindow;
 BITMAPINFO GameInfoBitmap;
 HBITMAP HandleToBitmap;
 
-void *GameMemoryVariable;
+void* GameMemoryVariable;
 
 
 
@@ -40,47 +40,46 @@ LRESULT CALLBACK WindowProcedure(HWND Handle, UINT UnsignedMessage, WPARAM wPara
 
 
 
-int _stdcall wWinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PWSTR CommandLine, int CmdShow) {
+INT WINAPI wWinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PWSTR CommandLine, int CmdShow) {
 
 
 
-	const wchar_t CLASS_NAME[] = L"Snake Game - Win 32";
+	const wchar_t CLASS_NAME[] = L"Snake Game Win 32";
 
 
-	WNDCLASS WindowClass = { 0 };
+	WNDCLASS WindowClass = { };
 
 	WindowClass.lpfnWndProc = WindowProcedure;
 	WindowClass.hInstance = Instance;
 	WindowClass.lpszClassName = CLASS_NAME;
 
 
+
 	RegisterClass(&WindowClass);
 
 
 
-	HWND GameWindow = CreateWindowEx(
+
+	GameWindow = CreateWindowEx(
 		0,
 		CLASS_NAME,
-		L"Snake Game Win32",
+		L"Snake Game - Win32",
 		WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT,
-		NULL, NULL, Instance, NULL
+		0, 0, GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT,
+		0, 0, Instance, 0
 
 	);
 
-
 	
 
-	// Handling fail of creatinh window
+	// Handling fail of creating the window
 
-	if (GameWindow == NULL) {
+	if (!GameWindow) {
 
-		//TODO: solve this problem!!
 
-		OutputDebugString((LPCWSTR)GetLastError());
 
-		MessageBoxA(NULL, "Window Creation Failed", "Error!", MB_OK | MB_ICONEXCLAMATION);
-		return -1;
+		MessageBox(NULL, L"Window Creation Failed", L"Error!", MB_OK);
+		return 0;
 
 	}
 
@@ -98,17 +97,17 @@ int _stdcall wWinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PWSTR Comm
 	while (ApplicationRunning != FALSE) {
 
 
-		
-		
+
+
 		ProcessPlayerInput();
-		
+
 
 
 		while (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE)) {
 
 			TranslateMessage(&Message);
 			DispatchMessage(&Message);
-			
+
 
 
 		}
@@ -116,7 +115,7 @@ int _stdcall wWinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PWSTR Comm
 		Sleep(1);
 
 
-		
+
 
 
 	}
@@ -171,7 +170,7 @@ LRESULT CALLBACK WindowProcedure(HWND Window, UINT UnsignedMessage, WPARAM wPara
 			int localWidth = Paint.rcPaint.right - Paint.rcPaint.left;
 			int localHeight = Paint.rcPaint.bottom - Paint.rcPaint.top;
 			UpdateGameWindow(DeviceContext, x_top_position, x_top_position, localWidth, localHeight);
-			
+
 			EndPaint(GameWindow, &Paint);
 
 
@@ -185,8 +184,10 @@ LRESULT CALLBACK WindowProcedure(HWND Window, UINT UnsignedMessage, WPARAM wPara
 
 
 
+						// REMARK: Never EVER make first argument the global HWND variable 'GameWindow', if so, it 
+						// will not return the Handle to the window at CreateWindowEx function, always returning zero
 
-	return DefWindowProc(GameWindow, UnsignedMessage, wParam, lParam);
+	return DefWindowProc(Window, UnsignedMessage, wParam, lParam);
 
 
 }
@@ -200,14 +201,13 @@ void CheckMutex() {
 	HANDLE Mutex = NULL;
 
 	Mutex = CreateMutex(NULL, false, L"Snake Game Mutex");
-	
+
 
 
 	if (GetLastError() == ERROR_ALREADY_EXISTS) {
 
 		MessageBoxA(NULL, "Instance of the program already running!", "Error!", MB_ICONERROR | MB_ICONERROR);
-		PostQuitMessage(0);
-		ExitProcess(0);
+		ExitGame();
 
 	}
 
@@ -226,9 +226,7 @@ void ProcessPlayerInput() {
 
 	if (SHORT EscKeyPressed = GetAsyncKeyState(VK_ESCAPE)) {
 
-		PostQuitMessage(0);
-		ExitProcess(0);
-
+		ExitGame();
 	}
 
 
@@ -239,15 +237,15 @@ void ProcessPlayerInput() {
 
 
 void CreateBitMapReasource() {
-	
+
 
 	//Setting GameMemoryVariable
 
-	GameMemoryVariable = VirtualAlloc(NULL, (GAME_WINDOW_HEIGHT * GAME_WINDOW_WIDTH), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-	
-	
-	
-	
+	void* GameMemoryVariable = VirtualAlloc(NULL, (GAME_WINDOW_HEIGHT * GAME_WINDOW_WIDTH), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+
+
+
+
 	HDC DeviceContext = GetDC(GameWindow);
 
 	GameInfoBitmap.bmiHeader.biSize = sizeof(GameInfoBitmap.bmiHeader);
@@ -282,10 +280,20 @@ void UpdateGameWindow(HDC DeviceContext, int x_initial_pos, int y_initial_pos, i
 		x_initial_pos, y_initial_pos, width, height,
 		&GameInfoBitmap, &GameInfoBitmap,
 		DIB_RGB_COLORS, SRCCOPY);
-		
 
 
-	
-	
+
+
+
+
+}
+
+
+
+
+void ExitGame() {
+
+	PostQuitMessage(0);
+	ExitProcess(0);
 
 }
